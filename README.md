@@ -42,7 +42,7 @@
 
 ### 2. Clone hoặc tải project
 ```bash
-git clone https://github.com/<tai-khoan-cua-ban>/<ten-repo>.git
+git clone https://github.com/minhlucianmactavish20-dev/giam-sat-do-bao-ho-lao-dong.git
 cd "Giám sát đồ bảo hộ lao động - Xử lý ảnh và thị giác máy tính"
 ```
 
