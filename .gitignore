@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C# / IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific logs & data
+violations/*.jpg
+violations/*.png
+reports/*.xlsx
+data/*.db
+
+# Large weights (optional, yolov8n.pt will auto-download if missing)
+/yolov8n.pt
+
+# OS generated files
+.DS_Store
+Thumbs.db
