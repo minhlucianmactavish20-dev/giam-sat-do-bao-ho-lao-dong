@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
-from config import REQUIRED_PPE_ITEMS
+from config import REQUIRED_PPE_ITEMS, ENABLE_PERSON_DETECTION
 
-# Bảng dịch nhãn hiển thị cho OpenCV putText (dùng ASCII sạch để tránh lỗi font '?' trên OpenCV)
 CLASS_LABELS = {
     'hardhat': ('Mu bao ho', (0, 200, 0)),
     'helmet': ('Mu bao ho', (0, 200, 0)),
@@ -11,34 +10,26 @@ CLASS_LABELS = {
     'mask': ('Khau trang', (0, 200, 0)),
     'person': ('Nguoi', (255, 200, 0)),
 
-    # Các lớp vi phạm trực tiếp (màu đỏ rực)
     'no-hardhat': ('[!] KHONG MU', (0, 0, 230)),
     'no-mask': ('[!] KHONG KHAU TRANG', (0, 0, 230)),
     'no-safety vest': ('[!] KHONG AO VEST', (0, 0, 230)),
 
-    # Các lớp phụ trợ từ dataset (màu trung tính)
     'safety cone': ('Chop non', (150, 150, 150)),
     'machinery': ('May moc', (150, 150, 150)),
     'vehicle': ('Phuong tien', (150, 150, 150)),
+
+    'goggles': ('Kinh bao ho', (0, 200, 0)),
+    'no-goggles': ('[!] KHONG KINH', (0, 0, 230)),
 }
 
 
 class PPEEvaluator:
-    """Đánh giá mức độ tuân thủ Đồ bảo hộ lao động (PPE Compliance)."""
 
     def __init__(self):
         self.required_items = REQUIRED_PPE_ITEMS
 
     def evaluate_frame(self, frame, detections):
-        """Đánh giá tuân thủ PPE và vẽ khung trực quan lên frame.
 
-        Args:
-            frame: BGR frame
-            detections: Danh sách dict từ PPEDetector
-
-        Returns:
-            (annotated_frame, evaluation_summary)
-        """
         annotated_frame = frame.copy()
         detected_aliases = set()
 
@@ -52,7 +43,6 @@ class PPEEvaluator:
             if c_name == 'person':
                 person_boxes.append(d['box'])
 
-            # Kiểm tra vi phạm trực tiếp (Negative classes từ model)
             if 'no-hardhat' in c_name:
                 explicit_violations.add('Mũ bảo hộ')
             elif 'no-mask' in c_name:
@@ -60,21 +50,21 @@ class PPEEvaluator:
             elif 'no-safety vest' in c_name or 'no-vest' in c_name:
                 explicit_violations.add('Áo bảo hộ/phản quang')
 
-        # Kiểm tra từng item trong REQUIRED_PPE_ITEMS (3 món: Mũ, Áo, Khẩu trang)
         detected_ppe = []
         missing_ppe = []
 
-        person_detected = len(person_boxes) > 0 or len(detections) > 0
+        if ENABLE_PERSON_DETECTION:
+            person_detected = len(person_boxes) > 0
+        else:
+            person_detected = len(person_boxes) > 0 or len(detections) > 0
 
         for ppe_key, ppe_info in self.required_items.items():
             name = ppe_info['name']
             aliases = [a.lower() for a in ppe_info['alias']]
             neg_aliases = [na.lower() for na in ppe_info.get('negative_alias', [])]
 
-            # Kiểm tra xem có detect nhãn phủ định không (vd NO-Hardhat)
             has_negative = any(na in detected_aliases for na in neg_aliases) or (name in explicit_violations)
 
-            # Kiểm tra xem có detect nhãn khẳng định không (vd Hardhat)
             has_positive = any(a in detected_aliases for a in aliases)
 
             if has_positive and not has_negative:
@@ -82,7 +72,6 @@ class PPEEvaluator:
             elif has_negative:
                 missing_ppe.append(name)
             elif person_detected:
-                # Có người nhưng không phát hiện trang bị
                 missing_ppe.append(name)
 
         total_items = len(self.required_items)
@@ -91,14 +80,12 @@ class PPEEvaluator:
 
         is_compliant = (len(missing_ppe) == 0) if person_detected else True
 
-        # === VẼ THÔNG TIN TRỰC QUAN LÊN FRAME ===
-        # 1. Vẽ bounding boxes của các vật thể
+
         for d in detections:
             x1, y1, x2, y2 = d['box']
             cls_name = d['class_name'].strip().lower()
             conf = d['confidence']
 
-            # Xác định nhãn tiếng Việt & màu sắc
             if cls_name in CLASS_LABELS:
                 label_prefix, color = CLASS_LABELS[cls_name]
             elif cls_name.startswith('no-'):
@@ -106,7 +93,6 @@ class PPEEvaluator:
             else:
                 label_prefix, color = cls_name, (0, 200, 0)
 
-            # Bỏ qua vẽ viền cho các lớp không quan trọng nếu không cần thiết
             if cls_name in ['machinery', 'vehicle', 'safety cone']:
                 continue
 
@@ -121,7 +107,6 @@ class PPEEvaluator:
                 cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2
             )
 
-        # 2. Vẽ Banner Trạng thái ở trên cùng
         banner_color = (0, 180, 0) if is_compliant else (0, 0, 220)  # Xanh nếu An toàn, Đỏ nếu Vi phạm
         cv2.rectangle(annotated_frame, (0, 0), (annotated_frame.shape[1], 45), banner_color, -1)
 
@@ -135,7 +120,8 @@ class PPEEvaluator:
             missing_map = {
                 'Mũ bảo hộ': 'Mu',
                 'Áo bảo hộ/phản quang': 'Ao vest',
-                'Khẩu trang': 'Khau trang'
+                'Khẩu trang': 'Khau trang',
+                'Kính bảo hộ': 'Kinh'
             }
             missing_clean = [missing_map.get(m, m) for m in missing_ppe]
             missing_str = ", ".join(missing_clean)

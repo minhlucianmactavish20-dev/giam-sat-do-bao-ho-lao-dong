@@ -6,7 +6,6 @@ from config import REPORTS_DIR, VIOLATIONS_DIR
 
 
 class ReportFrame(ctk.CTkFrame):
-    """Màn hình lịch sử vi phạm, thống kê KPI & xuất báo cáo Excel (Modern Industrial AI)."""
 
     def __init__(self, parent, ppe_dao):
         super().__init__(parent, fg_color="#0d1117")
@@ -17,7 +16,6 @@ class ReportFrame(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(3, weight=1)
 
-        # === HEADER BAR ===
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.grid(row=0, column=0, pady=(15, 10), padx=20, sticky="ew")
         header_frame.grid_columnconfigure(0, weight=1)
@@ -191,7 +189,6 @@ class ReportFrame(ctk.CTkFrame):
         )
         self.btn_export.grid(row=0, column=6, padx=(4, 15), pady=10)
 
-        # === 3. CONTENT AREA: MODERN TABLE VIEW ===
         content_frame = ctk.CTkFrame(
             self,
             fg_color="#161b22",
@@ -203,7 +200,6 @@ class ReportFrame(ctk.CTkFrame):
         content_frame.grid_columnconfigure(0, weight=1)
         content_frame.grid_rowconfigure(1, weight=1)
 
-        # Table Header Row
         table_hdr = ctk.CTkFrame(content_frame, fg_color="#21262d", height=38, corner_radius=6)
         table_hdr.grid(row=0, column=0, padx=12, pady=(12, 6), sticky="ew")
         table_hdr.grid_columnconfigure(2, weight=1)
@@ -238,7 +234,6 @@ class ReportFrame(ctk.CTkFrame):
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"), text_color="#8b949e"
         ).grid(row=0, column=5, padx=8, pady=8)
 
-        # Scrollable table container
         self.table_scroll = ctk.CTkScrollableFrame(
             content_frame,
             fg_color="#0d1117",
@@ -261,7 +256,6 @@ class ReportFrame(ctk.CTkFrame):
         self.refresh_data()
 
     def refresh_data(self):
-        """Tải dữ liệu thống kê KPI & danh sách vi phạm."""
         target_date = self.date_var.get().strip()
         if not target_date:
             target_date = date.today().isoformat()
@@ -275,7 +269,6 @@ class ReportFrame(ctk.CTkFrame):
         else:
             records = self.ppe_dao.get_violations_by_date(target_date)
 
-        # Cập nhật KPI lần vi phạm gần nhất
         if records:
             latest = records[0]
             latest_time = latest.get('time', '')
@@ -283,7 +276,6 @@ class ReportFrame(ctk.CTkFrame):
         else:
             self.kpi_labels["last_time"].configure(text="Chưa có")
 
-        # Xóa các dòng cũ trong scroll frame
         for widget in self.table_scroll.winfo_children():
             widget.destroy()
 
@@ -299,7 +291,6 @@ class ReportFrame(ctk.CTkFrame):
                 row_frame.pack(fill="x", padx=4, pady=2)
                 row_frame.grid_columnconfigure(2, weight=1)
 
-                # STT
                 ctk.CTkLabel(
                     row_frame,
                     text=f"#{i}",
@@ -308,7 +299,6 @@ class ReportFrame(ctk.CTkFrame):
                     text_color="#8b949e"
                 ).grid(row=0, column=0, padx=8, pady=6)
 
-                # Thời gian
                 time_str = f"{r.get('date', '')} {r.get('time', '')}" if self.show_all_mode else r.get('time', '')
                 ctk.CTkLabel(
                     row_frame,
@@ -319,7 +309,6 @@ class ReportFrame(ctk.CTkFrame):
                     anchor="w"
                 ).grid(row=0, column=1, padx=8, pady=6)
 
-                # Trang bị thiếu
                 missing_str = r.get('missing_items', '')
                 ctk.CTkLabel(
                     row_frame,
@@ -329,7 +318,6 @@ class ReportFrame(ctk.CTkFrame):
                     anchor="w"
                 ).grid(row=0, column=2, padx=8, pady=6, sticky="w")
 
-                # Điểm tuân thủ
                 score = r.get('compliance_score', 0)
                 ctk.CTkLabel(
                     row_frame,
@@ -339,7 +327,6 @@ class ReportFrame(ctk.CTkFrame):
                     text_color="#f59e0b" if score > 50 else "#ef4444"
                 ).grid(row=0, column=3, padx=8, pady=6)
 
-                # Badge trạng thái
                 status_pill = ctk.CTkLabel(
                     row_frame,
                     text="VI PHẠM",
@@ -353,7 +340,6 @@ class ReportFrame(ctk.CTkFrame):
                 )
                 status_pill.grid(row=0, column=4, padx=8, pady=6)
 
-                # Nút xem ảnh bằng chứng
                 snap_name = r.get('snapshot_path', '')
                 snap_full = os.path.join(VIOLATIONS_DIR, snap_name) if snap_name else ''
                 if snap_name and os.path.exists(snap_full):
@@ -396,7 +382,6 @@ class ReportFrame(ctk.CTkFrame):
             empty_lbl.pack(expand=True, pady=40)
 
     def export_excel(self):
-        """Xuất danh sách vi phạm ra file Excel với định dạng chuyên nghiệp."""
         try:
             import pandas as pd
         except ImportError:

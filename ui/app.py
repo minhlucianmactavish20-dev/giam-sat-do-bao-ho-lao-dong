@@ -5,7 +5,6 @@ from config import APP_TITLE, APP_WIDTH, APP_HEIGHT
 
 
 class App(ctk.CTk):
-    """Cửa sổ chính của ứng dụng Giám sát đồ bảo hộ lao động (Modern Industrial AI)."""
 
     def __init__(self, db_manager, detector, evaluator, alarm_mgr, ppe_dao):
         super().__init__()
@@ -16,7 +15,6 @@ class App(ctk.CTk):
         self.alarm_mgr = alarm_mgr
         self.ppe_dao = ppe_dao
 
-        # Cấu hình Window
         self.title(APP_TITLE)
         self.geometry(f"{APP_WIDTH}x{APP_HEIGHT}")
         self.minsize(1100, 680)
@@ -27,12 +25,10 @@ class App(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # === SIDEBAR (Modern Dark Slate) ===
         self.sidebar = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color="#161b22")
         self.sidebar.grid(row=0, column=0, sticky="nswe")
         self.sidebar.grid_rowconfigure(6, weight=1)
 
-        # Logo / Brand Header
         self.brand_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         self.brand_frame.grid(row=0, column=0, padx=20, pady=(25, 15), sticky="w")
 
@@ -79,7 +75,6 @@ class App(ctk.CTk):
             btn.grid(row=i + 2, column=0, padx=16, pady=5, sticky="ew")
             self.nav_buttons.append((name, btn))
 
-        # === AI SPECIALIST MODELS STATUS CARD ===
         self.models_card = ctk.CTkFrame(self.sidebar, fg_color="#21262d", corner_radius=10, border_width=1, border_color="#30363d")
         self.models_card.grid(row=4, column=0, padx=16, pady=(25, 10), sticky="ew")
 
@@ -115,7 +110,6 @@ class App(ctk.CTk):
                 pady=1
             ).pack(side="right")
 
-        # Bottom info card
         self.bottom_card = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         self.bottom_card.grid(row=7, column=0, padx=20, pady=(10, 20), sticky="s")
 
@@ -128,7 +122,6 @@ class App(ctk.CTk):
         )
         self.version_label.pack()
 
-        # === MAIN CONTAINER ===
         self.main_container = ctk.CTkFrame(self, corner_radius=0, fg_color="#0d1117")
         self.main_container.grid(row=0, column=1, sticky="nswe")
         self.main_container.grid_columnconfigure(0, weight=1)
@@ -151,8 +144,6 @@ class App(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def show_frame(self, name):
-        """Chuyển đổi giữa các màn hình với hiệu ứng active tab hiện đại."""
-        # Stop camera khi rời khỏi tab monitor
         if self.current_frame == "monitor" and name != "monitor":
             self.frames["monitor"].stop_camera()
 
@@ -177,7 +168,6 @@ class App(ctk.CTk):
             self.frames["report"].refresh_data()
 
     def on_closing(self):
-        """Đóng ứng dụng an toàn."""
         for frame in self.frames.values():
             if hasattr(frame, 'stop_camera'):
                 frame.stop_camera()

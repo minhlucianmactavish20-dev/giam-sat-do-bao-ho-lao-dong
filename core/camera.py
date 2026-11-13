@@ -4,7 +4,6 @@ from config import CAMERA_INDEX, FRAME_WIDTH, FRAME_HEIGHT
 
 
 class Camera:
-    """Quản lý luồng webcam, video file hoặc ảnh tĩnh sử dụng OpenCV."""
 
     def __init__(self, source=None, loop=True):
         self.source = CAMERA_INDEX if source is None else source
@@ -22,12 +21,10 @@ class Camera:
         self.is_running = False
 
     def start(self):
-        """Mở camera, file video hoặc file ảnh."""
         if self.is_running:
             return True
 
         if self.is_image:
-            # Đọc ảnh tĩnh (hỗ trợ đường dẫn có khoảng trắng/ký tự đặc biệt)
             self.static_frame = cv2.imread(self.source)
             if self.static_frame is None:
                 print(f"Không thể đọc file ảnh: {self.source}")
@@ -57,11 +54,7 @@ class Camera:
         return True
 
     def read_frame(self):
-        """Đọc một frame từ nguồn phát.
 
-        Returns:
-            (success, frame) - success là bool, frame là ảnh BGR
-        """
         if not self.is_running:
             return False, None
 
@@ -84,14 +77,12 @@ class Camera:
             else:
                 return False, None
 
-        # Chỉ lật gương đối với webcam
         if not self.is_file:
             frame = cv2.flip(frame, 1)
 
         return True, frame
 
     def stop(self):
-        """Đóng nguồn phát."""
         if self.cap is not None:
             self.cap.release()
             self.cap = None

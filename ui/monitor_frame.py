@@ -11,7 +11,6 @@ from utils.helpers import imwrite_utf8
 
 
 class MonitorFrame(ctk.CTkFrame):
-    """Màn hình giám sát đồ bảo hộ lao động thời gian thực (Modern Industrial AI Dashboard)."""
 
     def __init__(self, parent, detector, evaluator, alarm_mgr, ppe_dao):
         super().__init__(parent, fg_color="#0d1117")
@@ -25,14 +24,12 @@ class MonitorFrame(ctk.CTkFrame):
         self.camera_running = False
         self.photo_image = None
         self.last_snapshot_time = 0
-        self.snapshot_cooldown = 4.0  # seconds between snapshot saves
+        self.snapshot_cooldown = 4.0
 
-        # Khóa cố định cột bên phải (350px) để không bao giờ bị video đè hoặc co bóp
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=0, minsize=350)
         self.grid_rowconfigure(1, weight=1)
 
-        # === HEADER BAR ===
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.grid(row=0, column=0, columnspan=2, pady=(15, 10), padx=20, sticky="ew")
         header_frame.grid_columnconfigure(0, weight=1)
@@ -57,7 +54,6 @@ class MonitorFrame(ctk.CTkFrame):
         )
         self.live_badge.grid(row=0, column=1, sticky="e")
 
-        # === LEFT PANEL: Camera / Video Feed ===
         left_panel = ctk.CTkFrame(
             self,
             fg_color="#161b22",
@@ -79,7 +75,6 @@ class MonitorFrame(ctk.CTkFrame):
         )
         self.camera_label.grid(row=0, column=0, padx=15, pady=15, sticky="nswe")
 
-        # Thanh nút điều khiển (Webcam + Tải lên Video)
         btn_frame = ctk.CTkFrame(left_panel, fg_color="transparent")
         btn_frame.grid(row=1, column=0, padx=15, pady=(5, 15), sticky="ew")
         btn_frame.grid_columnconfigure((0, 1), weight=1)
@@ -108,7 +103,6 @@ class MonitorFrame(ctk.CTkFrame):
         )
         self.btn_upload.grid(row=0, column=1, padx=(8, 0), sticky="ew")
 
-        # === RIGHT PANEL: Live Status, Meter & Checklist ===
         right_panel = ctk.CTkFrame(
             self,
             fg_color="#161b22",
@@ -121,7 +115,6 @@ class MonitorFrame(ctk.CTkFrame):
         right_panel.grid_columnconfigure(0, weight=1)
         right_panel.grid_propagate(False)
 
-        # 1. LIVE COMPLIANCE METER CARD (Thanh đồng hồ tuân thủ trực quan)
         self.meter_card = ctk.CTkFrame(
             right_panel,
             fg_color="#21262d",
@@ -150,7 +143,6 @@ class MonitorFrame(ctk.CTkFrame):
         )
         self.score_label.pack(side="right")
 
-        # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             self.meter_card,
             height=10,
@@ -173,7 +165,6 @@ class MonitorFrame(ctk.CTkFrame):
         )
         self.status_badge.pack(fill="x", padx=12, pady=(0, 12))
 
-        # 2. CHECKLIST TRANG BỊ BẢO HỘ THEO DÕI
         self.items_frame = ctk.CTkFrame(
             right_panel,
             fg_color="#21262d",
@@ -230,7 +221,6 @@ class MonitorFrame(ctk.CTkFrame):
 
         ctk.CTkFrame(self.items_frame, height=8, fg_color="transparent").pack()
 
-        # 3. NHẬT KÝ VI PHẠM DẠNG CARDS (Scrollable)
         log_header_frame = ctk.CTkFrame(right_panel, fg_color="transparent")
         log_header_frame.grid(row=2, column=0, padx=15, pady=(5, 4), sticky="ew")
 
@@ -274,7 +264,6 @@ class MonitorFrame(ctk.CTkFrame):
         self.refresh_log_box()
 
     def select_media(self):
-        """Mở hộp thoại chọn file video hoặc file ảnh từ máy tính để kiểm thử."""
         file_path = filedialog.askopenfilename(
             title="Chọn file Video hoặc Ảnh để kiểm thử hệ thống PPE",
             filetypes=[
@@ -288,11 +277,9 @@ class MonitorFrame(ctk.CTkFrame):
             self.start_source(source_path=file_path)
 
     def start_camera(self):
-        """Bật webcam."""
         self.start_source(source_path=None)
 
     def start_source(self, source_path=None):
-        """Khởi động nguồn phát (Webcam, Video file hoặc File ảnh)."""
         from core.camera import Camera
 
         self.stop_source()
@@ -352,7 +339,6 @@ class MonitorFrame(ctk.CTkFrame):
             messagebox.showerror("Lỗi", msg)
 
     def stop_source(self):
-        """Dừng nguồn phát (Webcam, Video hoặc Ảnh)."""
         self.camera_running = False
         if self.camera:
             self.camera.stop()
@@ -383,7 +369,6 @@ class MonitorFrame(ctk.CTkFrame):
             fg_color="#21262d"
         )
 
-        # Làm sạch hoàn toàn khung hình (xóa triệt để ảnh Tkinter đang hiển thị)
         self.photo_image = None
         self.camera_label.configure(
             text="📹 SẴN SÀNG GIÁM SÁT\n\nNhấn 'Mở Webcam' hoặc 'Tải Video / Ảnh' để bắt đầu"
@@ -391,7 +376,6 @@ class MonitorFrame(ctk.CTkFrame):
         if hasattr(self.camera_label, '_label'):
             self.camera_label._label.configure(image="")
 
-        # Đưa đồng hồ tuân thủ về trạng thái ban đầu
         self.score_label.configure(text="--%", text_color="#8b949e")
         self.progress_bar.set(0.0)
         self.progress_bar.configure(progress_color="#30363d")
@@ -405,7 +389,6 @@ class MonitorFrame(ctk.CTkFrame):
                 )
 
     def stop_camera(self):
-        """Tương thích với app.py khi chuyển tab hoặc đóng cửa sổ."""
         self.stop_source()
 
     def update_camera(self):
@@ -418,17 +401,14 @@ class MonitorFrame(ctk.CTkFrame):
                 self.after(30, self.update_camera)
             return
 
-        # 1. Run YOLOv8 Multi-Head detection
         detections = self.detector.detect(frame)
 
-        # 2. Evaluate PPE compliance & overlay
         annotated_frame, summary = self.evaluator.evaluate_frame(frame, detections)
 
         detected_names = set(summary['detected_ppe'])
         missing_names = set(summary['missing_ppe'])
         person_detected = summary.get('person_detected', False)
 
-        # Cập nhật Checklist Items
         for key, info in REQUIRED_PPE_ITEMS.items():
             name = info['name']
             pill = self.item_status_pills.get(key)
@@ -440,14 +420,12 @@ class MonitorFrame(ctk.CTkFrame):
                 else:
                     pill.configure(text="✖ THIẾU", text_color="#ef4444", fg_color="#2a1719")
 
-        # Tính toán mức độ tuân thủ
         total_items = len(REQUIRED_PPE_ITEMS)
         missing_count = len(missing_names)
         detected_count = total_items - missing_count
         score = (detected_count / total_items) * 100.0 if total_items > 0 else 100.0
         is_compliant = (missing_count == 0)
 
-        # Cập nhật Compliance Meter & Progress Bar
         self.score_label.configure(text=f"{score:.0f}%")
         self.progress_bar.set(score / 100.0)
 
@@ -476,10 +454,8 @@ class MonitorFrame(ctk.CTkFrame):
                 text_color="#f87171"
             )
 
-            # Trigger Alarm
             self.alarm_mgr.trigger_alarm()
 
-            # Lưu vi phạm nếu bật tính năng snapshot (lưu bất đồng bộ để tránh giật lag camera)
             if ENABLE_VIOLATION_SNAPSHOT:
                 now = time.time()
                 if now - self.last_snapshot_time > self.snapshot_cooldown:
@@ -502,20 +478,16 @@ class MonitorFrame(ctk.CTkFrame):
 
                     threading.Thread(target=_async_save, daemon=True).start()
 
-        # 4. Hiển thị khung hình lên giao diện (vừa khít, không bao giờ tràn layout)
         try:
             frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame_rgb)
 
-            # Tính toán kích thước tối đa dựa trên kích thước cửa sổ MonitorFrame
             frame_w = self.winfo_width()
             frame_h = self.winfo_height()
 
-            # Trừ thanh sidebar bên phải (350px) và khoảng cách padding
             avail_w = frame_w - 350 - 60 if frame_w > 500 else 640
             avail_h = frame_h - 150 if frame_h > 400 else 460
 
-            # Cận giới hạn an toàn để không bao giờ tự động nở rộng làm co cột phải
             max_w = max(460, min(avail_w, 720))
             max_h = max(340, min(avail_h, 480))
 
@@ -536,10 +508,8 @@ class MonitorFrame(ctk.CTkFrame):
             self.after(30, self.update_camera)
 
     def refresh_log_box(self):
-        """Cập nhật nhật ký vi phạm hôm nay thành các thẻ vi phạm (Cards) hiện đại."""
         records = self.ppe_dao.get_violations_today()
 
-        # Xóa các card cũ trong scrollable frame
         for widget in self.log_scroll.winfo_children():
             widget.destroy()
 
